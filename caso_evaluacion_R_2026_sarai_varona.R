@@ -36,7 +36,7 @@ if (!file.exists(archivo)) {
   )
 }
 
-cat("Cargando archivo de datos")
+cat("\nCargando archivo de datos")
 
 datos <- read.csv(
   archivo,
@@ -45,32 +45,32 @@ datos <- read.csv(
   check.names = FALSE
 )
 
-cat("Archivo de datos cargado correctamente.")
+cat("\nArchivo de datos cargado correctamente.")
 
 # ------------------------------------------------------------
 # 0.2 EXPLORACION INICIAL
 # ------------------------------------------------------------
 
-cat("Comprobación de dimensiones y estructura de datos")
+cat("\nComprobación de dimensiones y estructura de datos.")
 
 # Comprobar dimensiones, nombres y estructura.
-cat("Numero de participantes y variables:")
+cat("\nNumero de participantes y variables:\n")
 print(dim(datos))
 
-cat("Nombres de las variables:")
+cat("\nNombres de las variables:\n")
 print(names(datos))
 
-cat("Estructura de los datos:")
+cat("\nEstructura de los datos:\n")
 str(datos)
 
-cat("Resumen inicial de las variables:")
+cat("\nResumen inicial de las variables:\n")
 print(summary(datos))
 
 # ------------------------------------------------------------
 # 0.3 COMPROBACION DE FRECUENCIAS Y DATOS PERDIDOS
 # ------------------------------------------------------------
 
-cat("Comprobación de frecuencias y datos perdidos")
+cat("\nComprobación de frecuencias y datos perdidos.")
 
 # Comprobamos las categorias observadas de las variables
 # cualitativas antes de resumirlas.
@@ -79,7 +79,7 @@ variables_cualitativas <- names(datos)[sapply(datos, is.character)]
 variables_cuantitativas <- setdiff(names(datos)[sapply(datos, is.numeric)], "id") #quitamos id porque no tiene relevancia clinica
 
 for (v in variables_cualitativas) {
-  cat("Frecuencias de", v, ":\n")
+  cat("\nFrecuencias de", v, ":")
   print(table(datos[[v]], exclude = NULL))
 }
 
@@ -93,21 +93,21 @@ tabla_perdidos <- data.frame(
 )
 
 if (all(tabla_perdidos$n_perdidos == 0)) {
-  cat("No hay datos perdidos.")
+  cat("\nNo hay datos perdidos.")
 } else {
-  cat("Datos perdidos por variable:")
+  cat("\nDatos perdidos por variable:")
   print(tabla_perdidos, row.names = FALSE)
 }
 
 # ------------------------------------------------------------
 # 1. ANALISIS DESCRIPTIVO
 # ------------------------------------------------------------
-cat("Comenzamos el análisis descriptivo")
+cat("\nComenzamos el análisis descriptivo.")
 
 # ------------------------------------------------------------
 # 1.1. Análisis Descriptivo Según Condición caso/control
 # ------------------------------------------------------------
-cat("Ejercicio 1: Realice un análisis descriptivo de la muestra según la condición de caso/control.
+cat("\nEjercicio 1: Realice un análisis descriptivo de la muestra según la condición de caso/control.
     Describa adecuadamente las variables cuantitativas y cualitativas e interprete los resultados.")
 
 # ------------------------------------------------------------
@@ -122,7 +122,7 @@ categorias_grupo <- unique(na.omit(datos$cancer_colorrectal))
 if (!all(c("Control", "Caso") %in% categorias_grupo)) {
   stop(
     "La variable cancer_colorrectal debe contener las categorias ",
-    "'Control' y 'Caso'. Categorias observadas: ",
+    "'Control' y 'Caso'. Categorias observadas:\n ",
     paste(categorias_grupo, collapse = ", ")
   )
 }
@@ -132,7 +132,7 @@ datos$cancer_colorrectal <- factor(
   levels = c("Control", "Caso")
 )
 
-cat("\nNumero de participantes por grupo:\n")
+cat("\nNumero de participantes por grupo:")
 print(table(datos$cancer_colorrectal, exclude = NULL))
 
 
@@ -140,8 +140,8 @@ print(table(datos$cancer_colorrectal, exclude = NULL))
 # 1.1.2. DESCRIPCION DE VARIABLES CUANTITATIVAS
 # ------------------------------------------------------------
 
-cat("Comenzamos el análisis descriptivo de las variables cuantitativas")
-cat("Comenzamos con descipciones de las variables")
+cat("\nComenzamos el análisis descriptivo de las variables cuantitativas.")
+cat("\nComenzamos con descipciones de las variables.")
 
 for (v in variables_cuantitativas) {
   x <- datos[[v]]
@@ -162,28 +162,28 @@ for (v in variables_cuantitativas) {
 # Resumen de las variables cuantitativas por caso/control.
 # tapply aplica una funcion a cada grupo definido por la variable
 # cancer_colorrectal, como en los ejemplos de las practicas.
-cat("MEDIA POR GRUPO")
+cat("\nMEDIA POR GRUPO")
 for (v in variables_cuantitativas) {
   cat("\n", v, ":\n", sep = "")
   print(tapply(datos[[v]], datos$cancer_colorrectal,
                mean, na.rm = TRUE))
 }
 
-cat("DESVIACION TIPICA POR GRUPO")
+cat("\nDESVIACION TIPICA POR GRUPO")
 for (v in variables_cuantitativas) {
   cat("\n", v, ":\n", sep = "")
   print(tapply(datos[[v]], datos$cancer_colorrectal,
                sd, na.rm = TRUE))
 }
 
-cat("MEDIANA POR GRUPO")
+cat("\nMEDIANA POR GRUPO")
 for (v in variables_cuantitativas) {
   cat("\n", v, ":\n", sep = "")
   print(tapply(datos[[v]], datos$cancer_colorrectal,
                median, na.rm = TRUE))
 }
 
-cat("CUARTILES POR GRUPO")
+cat("\nCUARTILES POR GRUPO")
 for (v in variables_cuantitativas) {
   cat("\n", v, ":\n", sep = "")
   print(tapply(
@@ -199,12 +199,12 @@ for (v in variables_cuantitativas) {
 # 1.1.3. GRAFICOS DE VARIABLES CUANTITATIVAS
 # ------------------------------------------------------------
 
-cat("Seguimos con los graficos descriptivos")
-
+cat("\nSeguimos con los graficos descriptivos.")
+dir.create("figuras/")
 # Histogramas para visualizar forma, dispersion y posibles
 # valores extremos. Se muestran por separado para cada grupo.
 png(
-  filename = "histograma_cuantitativas.png",
+  filename = "figuras/histograma_cuantitativas.png",
   width = 10, height = 15, units = "in", res = 150
 )
 
@@ -237,14 +237,14 @@ for (v in variables_cuantitativas) {
 
 dev.off()
 
-cat("Gráfico guardado: histograma_cuantitativas.png")
+cat("\nGráfico guardado: figuras/histograma_cuantitativas.png")
 par(op)
 
 # Diagramas de caja: permiten comparar medianas, dispersion
 # y posibles observaciones alejadas entre casos y controles.
 
 png(
-  filename = paste0("boxplot_cuantitativas.png"),
+  filename = paste0("figuras/boxplot_cuantitativas.png"),
   width = 15, height = 15, units = "in", res = 150
 )
 op <- par(mfrow = c(length(variables_cuantitativas), 1))
@@ -265,7 +265,7 @@ for (v in variables_cuantitativas) {
   }
 }
 dev.off()
-cat("Gráfico guardado: boxplot_cuantitativas.png")
+cat("\nGráfico guardado: figuras/boxplot_cuantitativas.png")
 par(op)
 
 
@@ -286,8 +286,8 @@ par(op)
 # ------------------------------------------------------------
 # 1.1.4. DESCRIPCION DE VARIABLES CUALITATIVAS
 # ------------------------------------------------------------
-cat("Comenzamos el análisis descriptivo de las variables cualitativas")
-cat("Comenzamos con descipciones de las variables")
+cat("\nComenzamos el análisis descriptivo de las variables cualitativas.")
+cat("\nComenzamos con descipciones de las variables.")
 
 # Para cada variable cualitativa mostramos:
 #   - tabla de frecuencias absolutas;
@@ -321,14 +321,14 @@ for (v in variables_cualitativas) {
   )
   print(tabla_cruzada)
   
-  cat("\nPorcentajes dentro de cada grupo de caso/control:\n")
+  cat("\nPorcentajes dentro de cada grupo de caso/control:")
   print(round(prop.table(tabla_cruzada, margin = 2) * 100, 2))
 }
 
 # ------------------------------------------------------------
 # 1.1.5. GRAFICOS DE VARIABLES CUALITATIVAS
 # ------------------------------------------------------------
-cat("Seguimos con los graficos descriptivos")
+cat("\nSeguimos con los graficos descriptivos.")
 
 # Barras agrupadas para comparar la distribucion de cada variable
 # cualitativa entre controles y casos.
@@ -337,7 +337,7 @@ vars_comparar <- setdiff(variables_cualitativas, "cancer_colorrectal")
 
 # Panel de 2 columnas y las filas necesarias (2 x 2 con 4 variables)
 png(
-  filename = paste0("barplot_cualitativas.png"),
+  filename = paste0("figuras/barplot_cualitativas.png"),
   width = 15, height = 10, units = "in", res = 150
 )
 op <- par(mfrow = c(ceiling(length(vars_comparar) / 2), 2))
@@ -361,6 +361,40 @@ for (v in vars_comparar) {
   )
 }
 dev.off()
-cat("Gráfico guardado: barplot_cualitativas.png")
+cat("\nGráfico guardado: figuras/barplot_cualitativas.png")
 # Restaurar la configuracion original
 par(op)
+
+# ------------------------------------------------------------
+# 1.1.6. Tablas summary
+# ------------------------------------------------------------
+
+library(gtsummary)
+
+cat("\nVamos a ver las tablas summary de las distintas categorías.\n")
+cat("\nVariables categóricas\n")
+tabla_categoricas <- subset(datos,select=variables_cualitativas) %>%
+  tbl_summary(by="cancer_colorrectal")%>%
+  add_overall()
+tabla_categoricas
+gt::gtsave(
+  gtsummary::as_gt(tabla_categoricas),
+  filename = "tabla_categoricas.html"
+)
+
+variables_cuantitativas <- c(
+  setdiff(names(datos)[sapply(datos, is.numeric)], "id"),
+  "cancer_colorrectal"
+)
+cat("\nVariables numericas\n")
+tabla_numericas <- subset(datos,select=variables_cuantitativas) %>%
+  tbl_summary(by="cancer_colorrectal",statistic = all_continuous() ~ "{mean}")%>%
+  add_overall()%>%
+  add_ci(pattern = "{stat} ({ci})")%>%
+  add_p(test = everything() ~ "t.test", test.args = all_tests("t.test") ~ list(var.equal = TRUE))
+
+tabla_numericas
+gt::gtsave(
+  gtsummary::as_gt(tabla_numericas),
+  filename = "tabla_numericas.html"
+)
