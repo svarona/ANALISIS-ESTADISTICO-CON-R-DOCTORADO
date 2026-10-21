@@ -100,18 +100,7 @@ if (all(tabla_perdidos$n_perdidos == 0)) {
 }
 
 # ------------------------------------------------------------
-# 1. ANALISIS DESCRIPTIVO
-# ------------------------------------------------------------
-cat("\nComenzamos el análisis descriptivo.")
-
-# ------------------------------------------------------------
-# 1.1. Análisis Descriptivo Según Condición caso/control
-# ------------------------------------------------------------
-cat("\nEjercicio 1: Realice un análisis descriptivo de la muestra según la condición de caso/control.
-    Describa adecuadamente las variables cuantitativas y cualitativas e interprete los resultados.")
-
-# ------------------------------------------------------------
-# 1.1.1. PREPARACION DE LA VARIABLE DE GRUPO
+# 0.4. PREPARACION DE LA VARIABLE DE GRUPO
 # ------------------------------------------------------------
 
 # Establecemos el orden de los grupos para que las tablas y los
@@ -134,6 +123,17 @@ datos$cancer_colorrectal <- factor(
 
 cat("\nNumero de participantes por grupo:")
 print(table(datos$cancer_colorrectal, exclude = NULL))
+
+# ------------------------------------------------------------
+# 1. ANALISIS DESCRIPTIVO
+# ------------------------------------------------------------
+cat("\nComenzamos el análisis descriptivo.")
+
+# ------------------------------------------------------------
+# 1.1. Análisis Descriptivo Según Condición caso/control
+# ------------------------------------------------------------
+cat("\nEjercicio 1: Realice un análisis descriptivo de la muestra según la condición de caso/control.
+    Describa adecuadamente las variables cuantitativas y cualitativas e interprete los resultados.")
 
 
 # ------------------------------------------------------------
@@ -162,38 +162,23 @@ for (v in variables_cuantitativas) {
 # Resumen de las variables cuantitativas por caso/control.
 # tapply aplica una funcion a cada grupo definido por la variable
 # cancer_colorrectal, como en los ejemplos de las practicas.
-cat("\nMEDIA POR GRUPO")
-for (v in variables_cuantitativas) {
-  cat("\n", v, ":\n", sep = "")
-  print(tapply(datos[[v]], datos$cancer_colorrectal,
-               mean, na.rm = TRUE))
-}
-
-cat("\nDESVIACION TIPICA POR GRUPO")
-for (v in variables_cuantitativas) {
-  cat("\n", v, ":\n", sep = "")
-  print(tapply(datos[[v]], datos$cancer_colorrectal,
-               sd, na.rm = TRUE))
-}
-
-cat("\nMEDIANA POR GRUPO")
-for (v in variables_cuantitativas) {
-  cat("\n", v, ":\n", sep = "")
-  print(tapply(datos[[v]], datos$cancer_colorrectal,
-               median, na.rm = TRUE))
-}
-
-cat("\nCUARTILES POR GRUPO")
-for (v in variables_cuantitativas) {
-  cat("\n", v, ":\n", sep = "")
-  print(tapply(
-    datos[[v]],
-    datos$cancer_colorrectal,
-    quantile,
-    probs = c(0.25, 0.5, 0.75),
-    na.rm = TRUE
-  ))
-}
+subset(datos,select=variables_cuantitativas) %>%
+  tbl_summary(
+    by = cancer_colorrectal,
+    type = all_continuous() ~ "continuous2",
+    statistic = all_continuous() ~ c(
+      "{mean} ({sd})",
+      "{median}",
+      "{p25}–{p75}"
+    ),
+    label = list(
+      edad ~ "Edad (años)",
+      imc ~ "Índice de masa corporal (IMC)"
+    ),
+    digits = all_continuous() ~ 2,
+    missing = "no"
+  ) %>%
+  add_overall()
 
 # ------------------------------------------------------------
 # 1.1.3. GRAFICOS DE VARIABLES CUANTITATIVAS
