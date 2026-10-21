@@ -1,0 +1,517 @@
+---
+title: "Caso de evaluación - Sarai Varona"
+subtitle: "Curso de análisis estadístico con R"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.align = "center", fig.width = 8, fig.height = 5)
+library(dplyr)
+library(gtsummary)
+```
+
+# Objetivo
+
+Se ha realizado un estudio de casos y controles para estudiar la asociación entre un nivel bajo de actividad física y el cáncer colorrectal. La base de datos incluye 120 casos y 120 controles y recoge, además, edad, sexo, índice de masa corporal (IMC), hábito tabáquico y antecedentes familiares de cáncer colorrectal.
+Archivo de datos: caso_evaluacion_R_2026.csv. Cada fila corresponde a una persona participante.
+
+# 0. Importación y exploración
+
+## 0.1. Carga de datos
+
+El archivo CSV debe estar en el directorio de trabajo de R, o se debe modificar la ruta de `archivo`.
+
+```{r importar}
+archivo <- "caso_evaluacion_R_2026.csv"
+
+if (!file.exists(archivo)) {
+  stop(
+    "No se encuentra el archivo: ", archivo,
+    "\nDirectorio de trabajo actual: ", getwd(),
+    "\nColoca el CSV en ese directorio."
+  )
+}
+datos <- read.csv(
+  archivo,
+  stringsAsFactors = FALSE,
+  na.strings = c("", "NA", "N/A", "NULL"),
+  check.names = FALSE
+)
+```
+
+## 0.2. Exploración inicial
+
+La muestra contiene `r nrow(datos)` participantes y `r ncol(datos)` variables.
+
+Las variables que presenta la tabla son `r paste(names(datos), collapse = ", ")`.
+
+La estructura de los datos es la siguiente:
+
+```{r estructura}
+str(datos)
+```
+
+Y este es el resumen inicial de las variables:
+
+```{r resumen}
+summary(datos)
+```
+
+## 0.3. Comprobación de frecuancias y datos perdidos
+
+Comprobamos la frecuencia de las variables cualitativas:
+
+```{r frecuencia}
+variables_cualitativas <- names(datos)[sapply(datos, is.character)]
+variables_cuantitativas <- setdiff(names(datos)[sapply(datos, is.numeric)], "id") #quitamos id porque no tiene relevancia clinica
+
+for (v in variables_cualitativas) {
+  cat("\nFrecuencias de", v, ":")
+  print(table(datos[[v]], exclude = NULL))
+}
+```
+
+Y ahora vamos a comprobar los datos perdidos si los hubiera:
+
+```{r perdidos}
+# Numero y porcentaje de datos perdidos por variable.
+n_perdidos <- sapply(datos, function(x) sum(is.na(x)))
+tabla_perdidos <- data.frame(
+  variable = names(datos),
+  n_perdidos = as.integer(n_perdidos),
+  porcentaje_perdido = round(100 * n_perdidos / nrow(datos), 2),
+  row.names = NULL
+)
+
+if (all(tabla_perdidos$n_perdidos == 0)) {
+  cat("\nNo hay datos perdidos.")
+} else {
+  cat("\nDatos perdidos por variable:")
+  print(tabla_perdidos, row.names = FALSE)
+}
+```
+
+Ahora vamos a preparar la variable de grupo (caso/control) para los análisis posteriores. Se comprueba que contiene las categorías esperadas y se convierte en factor con el orden adecuado.
+
+```{r preparar-grupo}
+
+if (!all(c("Control", "Caso") %in% unique(na.omit(datos$cancer_colorrectal))) ) {
+  stop("cancer_colorrectal debe contener las categorías 'Control' y 'Caso'.")
+}
+
+datos$cancer_colorrectal <- factor(
+  datos$cancer_colorrectal,
+  levels = c("Control", "Caso")
+)
+
+cat("\nNumero de participantes por grupo:")
+print(table(datos$cancer_colorrectal, exclude = NULL))
+```
+
+En esta muestra hay `r sum(datos$cancer_colorrectal == "Control", na.rm = TRUE)` controles y `r sum(datos$cancer_colorrectal == "Caso", na.rm = TRUE)` casos. Esta proporción corresponde a la muestra seleccionada y no estima la prevalencia de cáncer en la población.
+
+# 1. Análisis descriptivo
+
+## 1.1. Ejercicio 1:
+
+Realice un análisis descriptivo de la muestra según la condición de caso/control. Describa adecuadamente las variables cuantitativas y cualitativas e interprete los resultados.
+
+### 1.1.1. Descripción de variables cuantitativas
+
+Resumen de las variables cuantitativas (numéricas) por grupo (caso/control). Añadimos la variable de grupo a las variables cuantitativas para poder hacer el resumen por grupo.
+
+```{r numericas-tbl}
+variables_cuantitativas_grupo <- c(
+  setdiff(names(datos)[sapply(datos, is.numeric)], "id"),
+  "cancer_colorrectal"
+)
+iqr <- function(x) {
+  IQR(x, na.rm = TRUE)
+}
+subset(datos,select=variables_cuantitativas_grupo) %>%
+  tbl_summary(
+    by = cancer_colorrectal,
+    type = all_continuous() ~ "continuous2",
+    statistic = all_continuous() ~ c(
+      "{mean} ({sd})",
+      "{median}",
+      "{min}–{max}",
+      "{iqr} ({p25}–{p75})"
+    ),
+    label = list(
+      edad ~ "Edad (años)",
+      imc ~ "Índice de masa corporal (IMC)"
+    ),
+    digits = all_continuous() ~ 2,
+    missing = "no"
+  ) %>%
+  add_overall()
+```
+
+### 1.1.2. Gráficos descriptivos de variables cuantitativas
+
+#### Histogramas por grupo
+
+```{r histogramas, fig.width=9, fig.height=7}
+op <- par(mfrow = c(length(variables_cuantitativas), 2))
+
+for (v in variables_cuantitativas) {
+  
+  x_control <- datos[[v]][datos$cancer_colorrectal == "Control"]
+  x_caso <- datos[[v]][datos$cancer_colorrectal == "Caso"]
+  
+  hist(
+    x_control,
+    main = paste(v, "- Controles"),
+    xlab = v,
+    ylab = "Frecuencia",
+    col = "darkgreen",
+    border = "lightgreen"
+  )
+  
+  hist(
+    x_caso,
+    main = paste(v, "- Casos"),
+    xlab = v,
+    ylab = "Frecuencia",
+    col = "darkred",
+    border = "indianred1"
+  )
+}
+
+par(op)
+```
+
+#### Diagramas de caja
+
+```{r boxplots, fig.width=9, fig.height=7, out.width="100%", fig.align="center"}
+op <- par(mfrow = c(1, length(variables_cuantitativas)),
+          mar = c(5, 4, 4, 1))
+
+for (v in variables_cuantitativas) {
+  b <- boxplot(
+    datos[[v]] ~ datos$cancer_colorrectal,
+    main = paste(v, "segun condicion de caso/control"),
+    xlab = "Grupo",
+    ylab = v,
+    col = c("firebrick3", "chartreuse4"),
+    border = c("darkred", "darkgreen")
+  )
+
+  # Etiquetar cada outlier con su valor, justo debajo del punto
+  if (length(b$out) > 0) {
+    text(x = b$group, y = b$out, labels = b$out, pos = 1, cex = 0.8)
+  }
+}
+
+par(op)
+```
+
+#### Gráficos Q-Q
+
+Vamos a elaborar gráficos Q-Q de la edad y del IMC por separado para casos y controles con el fin de evaluar visualmente la aproximación de las distribuciones a la normalidad. La interpretación se basa en la proximidad de los puntos a la línea de referencia y en la presencia de posibles desviaciones sistemáticas. Esta evaluación complementa la descripción de las variables y ayuda a valorar la adecuación de las pruebas de comparación de medias. Estos gráficos permiten explorar visualmente la forma de las distribuciones; no constituyen por sí solos una prueba concluyente de normalidad.
+
+```{r qqplots, fig.width=7, fig.height=9, out.width="85%", fig.align="center"}
+par(mfrow = c(2, 2))
+
+# Comprobar la normalidad visualmente en cada grupo
+
+for (v in variables_cuantitativas) {
+  for (grupo in levels(datos$cancer_colorrectal)) {
+    # Seleccionar los valores de la variable en cada grupo
+    x <- datos[[v]][datos$cancer_colorrectal == grupo]
+    x <- x[!is.na(x)]
+    # Gráfico Q-Q
+    qqnorm(
+      x,
+      main = paste(v, "-", grupo),
+      xlab = "Cuantiles teóricos",
+      ylab = "Cuantiles muestrales",
+      pch = 19
+    )
+    # Añadir la línea de referencia
+    qqline(x, col = "red", lwd = 2)
+  }
+}
+
+par(op)
+```
+
+### 1.1.3. Descripción de variables cualitativas
+
+Se presentan las frecuencias absolutas y los porcentajes dentro de cada grupo para las variables cuategóricas.
+
+```{r cualitativas-tbl}
+subset(datos,select=variables_cualitativas) %>%
+  tbl_summary(
+    by = cancer_colorrectal,
+    type = all_categorical() ~ "categorical",
+    statistic = all_categorical() ~ "{n} ({p}%)",
+    percent = "column",
+    missing = "no",
+    label = list(
+      sexo ~ "Sexo",
+      actividad_fisica ~ "Nivel de actividad física",
+      fumador ~ "Tabaquismo",
+      antecedentes_familiares ~ "Antecedentes familiares"
+    ),
+  ) %>%
+  add_overall()
+```
+
+### 1.1.4. Gráficos descriptivos de variables cuantitativas
+
+#### Gráficos de barras
+
+Eliminamos la variable de grupo de la lista de variables cualitativas para poder hacer los gráficos de barras.
+
+```{r barras-cualitativas, fig.width=9, fig.height=7}
+vars_comparar <- setdiff(variables_cualitativas, "cancer_colorrectal")
+
+op <- par(mfrow = c(ceiling(length(vars_comparar) / 2), 2))
+for (v in vars_comparar) {
+  
+  tabla_grafico <- table(
+    datos[[v]],
+    datos$cancer_colorrectal
+  )
+  
+  barplot(
+    tabla_grafico,
+    beside = TRUE,
+    main = paste(v),
+    xlab = v,
+    ylab = "Frecuencia",
+    legend.text = rownames(tabla_grafico),
+    args.legend = list(title = "Grupo", x = "topright"),
+    col = c("grey70", "grey30")
+  )
+}
+
+par(op)
+```
+
+### 1.1.5. Respuesta al ejercicio 1
+
+La muestra está formada por 240 participantes: 120 casos de cáncer colorrectal y 120 controles. Cada grupo representa el 50% de la muestra. Esta proporción refleja el diseño de casos y controles y no debe interpretarse como la prevalencia de cáncer colorrectal en la población.
+
+La edad media fue de 55,34 años (DE = 11,38) en los controles y de 61,41 años (DE = 10,78) en los casos. Las medianas fueron 55 y 61,5 años, respectivamente. Descriptivamente, los casos eran de mayor edad; la diferencia entre las medias fue de aproximadamente 6,07 años.
+
+El IMC medio fue de 25,81 (DE = 3,52) en los controles y de 27,44 (DE = 4,47) en los casos. Las medianas fueron 25,85 y 27,25, respectivamente. Los casos presentaron valores medios de IMC algo superiores y mayor variabilidad en esta variable.
+
+Las mujeres representaron el 50,0% de los controles y el 55,8% de los casos, por lo que la distribución por sexo fue relativamente similar entre grupos.
+
+La actividad física baja fue más frecuente entre los casos (37,5%) que entre los controles (24,2%). En cambio, la actividad física alta fue más frecuente entre los controles (75,8%) que entre los casos (62,5%).
+
+La proporción de fumadores fue del 23,3% en los controles y del 38,3% en los casos.
+
+Asimismo, los antecedentes familiares estuvieron presentes en el 20,8% de los controles y en el 34,2% de los casos.
+
+En esta muestra, los casos presentaron mayor edad media e IMC medio, y mayores proporciones de actividad física baja, tabaquismo y antecedentes familiares que los controles. Estas diferencias son descriptivas: por sí solas no permiten afirmar que las asociaciones sean estadísticamente significativas ni establecer causalidad. La evaluación de asociaciones y posibles factores de confusión requiere los análisis inferenciales posteriores.
+
+## 1.2. Ejercicio 2:
+
+Estudie qué variables podrían actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal. Justifique su respuesta a partir de los datos.
+
+Basádonos en los resultados del análisis descriptivo anterior, podríamos decir que la edad, el sexo, el IMC, el hábito tabáquico y los antecedentes familiares podrían actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal.
+
+### 1.2.1. Tablas estadísticas en base al cancer colorrectal
+
+Vamos a evaluar estadísticamente si estas variables podrían tener diferencias significativas en función del grupo de cancer colorrectal y si podrían ser realmente factores de confusión. Evaluaremos por separado las variables cuantitativas y las cualitativas.
+
+#### Variables cuantitativas
+
+Vamos a construir una tabla con `tbl_summary()` para describir las variables cuantitativas según la condición de caso/control de cancer colorrectal y añadir dos pruebas para comparar los grupos.
+
+Primero empleamos la prueba t de Welch, que no requiere asumir varianzas iguales.
+
+```{r stat-cuant-cr-t}
+subset(datos,select=variables_cuantitativas_grupo) %>%
+  tbl_summary(
+    by = cancer_colorrectal,
+    statistic = all_continuous() ~ "{mean}",
+    label = list(
+      edad ~ "Edad (años)",
+      imc ~ "Índice de masa corporal (IMC)"
+      )
+    )%>%
+  add_overall()%>%
+  add_ci(pattern = "{stat} ({ci})")%>%
+  add_p(test = everything() ~ "t.test")
+```
+
+Y ahora empleamos la prueba de Wilcoxon-Mann-Whitney (wilcox.test).
+
+```{r stat-cuant-cr-wmw}
+subset(datos,select=variables_cuantitativas_grupo) %>%
+  tbl_summary(
+    by = cancer_colorrectal,
+    statistic = all_continuous() ~ "{mean}",
+    label = list(
+      edad ~ "Edad (años)",
+      imc ~ "Índice de masa corporal (IMC)"
+      )
+    )%>%
+  add_overall()%>%
+  add_ci(pattern = "{stat} ({ci})")%>%
+  add_p(test = everything() ~ "wilcox.test")
+```
+
+Vemos que empleando ambos test, ambas variables tienen diferencias significativas (<0.05) entre los grupos de caso/control de cancer colorrectal por lo que son potenciales factores de confusión.
+
+#### Variables cualitativas
+
+Vamos a construir una tabla con `tbl_summary()` para describir las variables cualitativas según la condición de caso/control de cancer colorrectal y añadir una pruebas para comparar los grupos empleando la prueba Chi-cuadrado de Pearson:
+
+```{r stat-cuant-cr-c2}
+subset(datos,select=variables_cualitativas) %>%
+  tbl_summary(
+    by = cancer_colorrectal,
+    statistic = all_categorical() ~ "{n} ({p}%)",
+    percent = "column",
+    missing = "no",
+    label = list(
+      sexo ~ "Sexo",
+      actividad_fisica ~ "Nivel de actividad física",
+      fumador ~ "Tabaquismo",
+      antecedentes_familiares ~ "Antecedentes familiares"
+    )
+  ) %>%
+  add_overall()%>%
+  add_p()
+```
+
+Vemos que el sexo no parece que tenga diferencias significativas entre los grupos, mientras que la actividad física, el tabaquismo y los antecedentes familiares tienen una significancia de menos del 0.05.
+
+Las variables asociadas con el cáncer son candidatas a ser examinadas como factores de confusión.
+
+### 1.2.2. Edad e IMC: comparación por actividad física
+
+Vamos a emplear tapply() para comparar una variable cuantitativa entre grupos:
+
+```{r ead-imc-mean}
+cat("Media de edad según la actividad físicas\n")
+tapply(datos$edad, datos$actividad_fisica, mean, na.rm = TRUE)
+
+cat("\nMedia de IMC según actividad física\n")
+tapply(datos$imc, datos$actividad_fisica, mean, na.rm = TRUE)
+```
+
+Vamos a realizar tablas estadísticas de las variables cuantitativas según la actividad física. Emplearemos dos test igual que antes.
+
+Primero el t-test:
+
+```{r stat-cuant-af-t}
+variables_cuantitativas_af <- c(
+  setdiff(names(datos)[sapply(datos, is.numeric)], "id"),
+  "actividad_fisica"
+)
+subset(datos,select=variables_cuantitativas_af) %>%
+  tbl_summary(
+    by = actividad_fisica,
+    statistic = all_continuous() ~ "{mean}",
+    label = list(
+      edad ~ "Edad (años)",
+      imc ~ "Índice de masa corporal (IMC)"
+      )
+    )%>%
+  add_overall()%>%
+  add_ci(pattern = "{stat} ({ci})")%>%
+  add_p(test = everything() ~ "t.test")
+```
+
+Y ahora empleamos la prueba de Wilcoxon-Mann-Whitney:
+
+```{r stat-cuant-af-wmw}
+variables_cuantitativas_af <- c(
+  setdiff(names(datos)[sapply(datos, is.numeric)], "id"),
+  "actividad_fisica"
+)
+subset(datos,select=variables_cuantitativas_af) %>%
+  tbl_summary(
+    by = actividad_fisica,
+    statistic = all_continuous() ~ "{mean}",
+    label = list(
+      edad ~ "Edad (años)",
+      imc ~ "Índice de masa corporal (IMC)"
+      )
+    )%>%
+  add_overall()%>%
+  add_ci(pattern = "{stat} ({ci})")%>%
+  add_p(test = everything() ~ "wilcox.test")
+```
+
+Vemos que en este caso la edad está estadísticamente relacionada con la actividad física, mientras que el IMC no.
+
+### 1.2.3. Sexo, tabaquismo y antecedentes familiares comparación por actividad física
+
+Vamos a visualizar las tablas cruzadas de las variables categóricas en función de la actividad física:
+
+```{r cualitativas-tabla-cruzada}
+# Sexo y actividad física
+cat("\nTabla de contingencia para el sexo")
+tabla_sexo <- table(datos$sexo, datos$actividad_fisica)
+tabla_sexo
+cat("\nTabla de porcentages para el sexo")
+round(prop.table(tabla_sexo, margin = 2) * 100, 2)
+
+# Tabaquismo y actividad física
+cat("\nTabla de contingencia para el tabaquismo")
+tabla_fumador <- table(datos$fumador, datos$actividad_fisica)
+tabla_fumador
+cat("\nTabla de porcentages para el tabaquismo")
+round(prop.table(tabla_fumador, margin = 2) * 100, 2)
+
+# Antecedentes familiares y actividad física
+cat("\nTabla de contingencia para los antecedentes familiares")
+tabla_antecedentes <- table(
+  datos$antecedentes_familiares,
+  datos$actividad_fisica
+)
+tabla_antecedentes
+cat("\nTabla de porcentages para los antecedentes familiares\n")
+round(prop.table(tabla_antecedentes, margin = 2) * 100, 2)
+```
+
+Vamos a construir una tabla con `tbl_summary()` para describir las variables cualitativas según la actividad física y añadir una prueba para comparar los grupos empleando la prueba Chi-cuadrado de Pearson:
+
+```{r stat-cuant-af-c2}
+subset(datos, select = variables_cualitativas[variables_cualitativas != "cancer_colorrectal"]) %>%
+  tbl_summary(
+    by = actividad_fisica,
+    statistic = all_categorical() ~ "{n} ({p}%)",
+    percent = "column",
+    missing = "no",
+    label = list(
+      sexo ~ "Sexo",
+      fumador ~ "Tabaquismo",
+      antecedentes_familiares ~ "Antecedentes familiares"
+    )
+  ) %>%
+  add_overall()%>%
+  add_p()
+```
+
+Vemos que ninguna de estas variables tiene relación significativa con la actividad física.
+
+### 1.2.4 Conclusiones
+
+Los resultados de las comparaciones indican que la edad es la principal variable candidata a factor de confusión en la relación entre actividad física y cáncer colorrectal. Por un lado, los casos presentan una edad media superior a la de los controles (61,41 frente a 55,34 años; p < 0,001). Por otro lado, las personas con actividad física baja tienen una edad media superior a las que presentan actividad física alta (61,72 frente a 56,89 años; p < 0,01). Por tanto, la edad muestra una asociación estadísticamente significativa tanto con la exposición como con el desenlace.
+
+El IMC también presenta diferencias estadísticamente significativas entre casos y controles, pero no se observa una asociación estadísticamente significativa entre el IMC y el nivel de actividad física en esta muestra. De forma similar, el tabaquismo y los antecedentes familiares se asocian estadísticamente con la condición de caso/control, pero no muestran una asociación estadísticamente significativa con la actividad física.
+
+En el caso del sexo, no se observan diferencias estadísticamente significativas ni entre casos y controles ni según el nivel de actividad física.
+
+En consecuencia, a partir de los análisis realizados, la edad es la variable que presenta mayor evidencia estadística para ser considerada un posible factor de confusión. Los resultados no aportan evidencia estadística suficiente para identificar las demás variables como factores de confusión mediante estas comparaciones, aunque ello no permite descartarlas de forma definitiva.
+
+Por último, estas comparaciones permiten identificar posibles factores de confusión, pero no confirmar su existencia. Para evaluar si la edad y otras covariables modifican la asociación entre actividad física y cáncer colorrectal, sería conveniente comparar la estimación de la asociación sin ajustar con la estimación obtenida tras el ajuste por las variables justificadas epidemiológicamente.
+
+# 2. Análisis de regresión
+
+## 2.1. Ejercicio 1:
