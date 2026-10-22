@@ -138,8 +138,10 @@ range(datos$"peso")
 hist(datos$"peso",xlab="Peso (kg)",ylab="N",main="Peso",ylim=c(0,60))
 qqnorm(datos$"peso")
 
-library(crosstable)library(knitr)
-res<-crosstable(datos, c(peso))kable(res)
+library(crosstable)
+library(knitr)
+res<-crosstable(datos, c(peso))
+kable(res)
 
 
 datos.hombre<-datos[datos$"sexo"%in%"Hombre",]
@@ -148,9 +150,12 @@ tapply(datos$"peso",datos$"sexo",mean)
 
 tapply(datos$"peso",datos$"sexo",mean)[1]
 
-res<-crosstable(datos, c(peso), by=sexo)kable(res)
+res<-crosstable(datos, c(peso), by=sexo)
+kable(res)
 
-par(mfrow=c(1,2))hist(datos$"peso"[datos$"sexo"%in%"Hombre"],main="Peso Hombres",xlab="Peso (Kg)")hist(datos$"peso"[datos$"sexo"%in%"Mujer"],main="Peso Mujeres",xlab="Peso (Kg)")
+par(mfrow=c(1,2))
+hist(datos$"peso"[datos$"sexo"%in%"Hombre"],main="Peso Hombres",xlab="Peso (Kg)")
+hist(datos$"peso"[datos$"sexo"%in%"Mujer"],main="Peso Mujeres",xlab="Peso (Kg)")
 
 library(ggplot2)
 
@@ -188,11 +193,17 @@ prop.table(table(datos$"estado.civil",datos$"sexo",exclude=NULL),1)*100
 
 prop.table(table(datos$"estado.civil",datos$"sexo",exclude=NULL),2)*100
 
-par(mfrow=c(2,1))barplot(table(datos$"estado.civil"[datos$"sexo"%in%"Hombre"]),main="Hombres",ylim=c(0,50))barplot(table(datos$"estado.civil"[datos$"sexo"%in%"Mujer"]),main="Mujeres",ylim=c(0,50))
+par(mfrow=c(2,1))
+barplot(table(datos$"estado.civil"[datos$"sexo"%in%"Hombre"]),
+main="Hombres",ylim=c(0,50))
+barplot(table(datos$"estado.civil"[datos$"sexo"%in%"Mujer"]),
+main="Mujeres",ylim=c(0,50))
 
 
 gmodels::CrossTable(datos$"estado.civil",datos$"sexo",prop.r=TRUE, prop.c=TRUE,prop.chisq=FALSE)
-library(crosstable)crosstable(datos,c(estado.civil),by=sexo)%>%as_flextable(keep_id=TRUE)
+library(crosstable)
+crosstable(datos,c(estado.civil),by=sexo)%>%
+as_flextable(keep_id=TRUE)
 
 
 crosstable(datos,c(peso,estado.civil),by=sexo)%>%
@@ -549,7 +560,28 @@ tf<-("tabla_resultados.png")
 ft1 <- as_flex_table(tbl_final)
 save_as_image(ft1, path = tf)
 
+##### CORRELACIONES ###########
+starwars=read.csv("regression/data/starwars.csv")
+
+cor(starwars$height,starwars$mass)
+cor(starwars$height,starwars$mass, use = "pairwise.complete.obs")
+mean(starwars$height)
+mean(starwars$height,na.rm = TRUE)
 
 
+## El miercoles no tome apuntas
+## El jueves empezamos con la simulacion
+## Ahora vemos el ODDs ratio
+neonatos=read.csv(file = "./regression/data/neonatos.csv")
+neonatos40=subset(neonatos,gestacion == 40) # neonatos con una edad de gestación de 40 semanas
+neonatos40$peg = (neonatos40$peso <= 2800) # niños pequeños para su edad gestacional (PEG)
+table(neonatos40$peg)
+xtabs(~ fuma + peg, data=neonatos40)
 
 
+### ejercicio del titanic
+titanic <- read.csv(file = "./regression/data/titanic.csv")
+mortalidad=glm(cbind(No,Yes)~Class, data=titanic, family=binomial)
+summary(mortalidad)
+exp(coef(mortalidad))
+# la gente de segunda clase tiene dos veces más probabilidades de morirse que los de primera, y los de tercera casi 5 veces más. Y la tripulación más de 5 veces más.
