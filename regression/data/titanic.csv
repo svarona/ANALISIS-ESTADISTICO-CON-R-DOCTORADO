@@ -1,0 +1,17 @@
+Class,Sex,Age,No,Yes
+1st,Female,Adult,4,140
+1st,Female,Child,0,1
+1st,Male,Adult,118,57
+1st,Male,Child,0,5
+2nd,Female,Adult,13,80
+2nd,Female,Child,0,13
+2nd,Male,Adult,154,14
+2nd,Male,Child,0,11
+3rd,Female,Adult,89,76
+3rd,Female,Child,17,14
+3rd,Male,Adult,387,75
+3rd,Male,Child,35,13
+Crew,Female,Adult,3,20
+Crew,Female,Child,0,0
+Crew,Male,Adult,670,192
+Crew,Male,Child,0,0
