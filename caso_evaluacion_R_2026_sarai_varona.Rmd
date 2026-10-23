@@ -187,21 +187,11 @@ subset(datos,select=variables_cuantitativas_grupo) %>%
   add_overall()
 ```
 
-#### Tabla descriptiva complementaria
-
-A continuación, se presenta una tabla descriptiva complementaria de la edad y el IMC según la condición de caso o control. Esta tabla permite contrastar los estadísticos descriptivos obtenidos y facilita la comparación de ambas variables entre los dos grupos.
-
-```{r}
-crosstable(
-  datos,
-  c(edad,imc),
-  by = cancer_colorrectal
-)
-```
-
 ### Gráficos descriptivos de variables cuantitativas
 
 #### Histogramas por grupo
+
+Los histogramas nos van a permitir observar la distribución de la edad y del IMC por separado en los casos y los controles.
 
 ```{r histogramas, fig.width=9, fig.height=7}
 op <- par(mfrow = c(length(variables_cuantitativas), 2))
@@ -233,7 +223,15 @@ for (v in variables_cuantitativas) {
 par(op)
 ```
 
+En cuanto a la edad, se observa que los controles presentan una distribución centrada aproximadamente entre los 45 y los 65 años, con una mayor frecuencia en torno a los 50-55 años. En los casos, la distribución aparece desplazada hacia edades superiores, con mayor concentración de participantes entre los 55 y los 70 años. Este patrón sugiere que los casos presentan una edad generalmente más elevada que los controles.
+
+Respecto al IMC, los controles presentan una mayor concentración de valores entre aproximadamente 22 y 28 kg/m². En los casos, la distribución se encuentra desplazada hacia valores algo superiores, con una mayor concentración entre 25 y 30 kg/m². Además, en el grupo de casos se observa un valor extremo elevado, cercano a 41 kg/m², que alarga la cola derecha de la distribución.
+
+Estos histogramas sugieren que tanto la edad como el IMC presentan valores centrales superiores en los casos que en los controles.
+
 #### Diagramas de caja
+
+Los diagramas de caja permiten comparar la mediana, la dispersión y la presencia de posibles valores atípicos de la edad y del IMC entre casos y controles.
 
 ```{r boxplots, fig.width=9, fig.height=7, out.width="100%", fig.align="center"}
 op <- par(mfrow = c(1, length(variables_cuantitativas)),
@@ -258,9 +256,15 @@ for (v in variables_cuantitativas) {
 par(op)
 ```
 
+En relación con la edad, la mediana es superior en los casos. La caja de los casos también se sitúa a edades más elevadas, lo que indica que la distribución de la edad está desplazada hacia valores superiores. Se observan algunos valores atípicos en el extremo inferior del grupo de casos, correspondientes a participantes de menor edad.
+
+En cuanto al IMC, los casos presentan una mediana superior a la de los controles, aproximadamente 27,3 frente a 25,9 kg/m². Además, la caja de los casos es más amplia, lo que indica una mayor dispersión del 50 % central de sus valores. Destaca también un valor atípico elevado, próximo a 40,7 kg/m², en el grupo de casos.
+
+En conjunto, los diagramas de caja respaldan lo observado en los histogramas: los casos presentan valores centrales superiores tanto de edad como de IMC. Además, el IMC muestra una mayor dispersión en los casos y presenta un posible valor atípico (outlier) que conviene tener en cuenta al interpretar los resultados. Estas diferencias visuales no determinan por sí solas la significación estadística de las comparaciones y habría que evaluar si las medias son significativamente diferentes por medio de un test estadístico.
+
 #### Gráficos Q-Q
 
-Vamos a elaborar gráficos Q-Q de la edad y del IMC por separado para casos y controles con el fin de evaluar visualmente la aproximación de las distribuciones a la normalidad. La interpretación se basa en la proximidad de los puntos a la línea de referencia y en la presencia de posibles desviaciones sistemáticas. Esta evaluación complementa la descripción de las variables y ayuda a valorar la adecuación de las pruebas de comparación de medias. Estos gráficos permiten explorar visualmente la forma de las distribuciones; no constituyen por sí solos una prueba concluyente de normalidad.
+Vamos a elaborar gráficos Q-Q de la edad y del IMC por separado para casos y controles con el fin de evaluar visualmente la aproximación de las distribuciones a la normalidad.
 
 ```{r qqplots, fig.width=7, fig.height=9, out.width="85%", fig.align="center"}
 par(mfrow = c(2, 2))
@@ -288,13 +292,19 @@ for (v in variables_cuantitativas) {
 par(op)
 ```
 
+Se observa que los puntos del IMC, tanto en los controles como en los casos, siguen bastante bien la línea de referencia, aunque en el grupo de casos destaca una observación en el extremo superior que se aleja de dicha línea. Esto sugiere que ambas distribuciones presentan una aproximación razonable a la normalidad, con una posible desviación en la cola superior del IMC en los casos.
+
+En cuanto a la edad, los puntos se ajustan razonablemente a la línea de referencia en el grupo de controles, aunque se aprecian algunas desviaciones en los extremos. En el grupo de casos, las desviaciones son más visibles, especialmente en la cola inferior y en los valores más altos.
+
+En conjunto, los gráficos sugieren que la normalidad se aproxima mejor para el IMC que para la edad.
+
 ### Descripción de variables cualitativas
 
 #### Tablas descriptiva
 
-Se presentan las frecuencias absolutas y los porcentajes de las variables cualitativas, diferenciando entre el grupo de casos y el de controles de cancer colorrectal. Los porcentajes se calculan por columnas, de modo que permiten conocer la distribución de cada variable dentro de cada grupo.
+A continuación se presentan las frecuencias absolutas y los porcentajes de las variables cualitativas, diferenciando entre el grupo de casos y el de controles de cancer colorrectal. Los porcentajes se calculan por columnas, de modo que permiten conocer la distribución de cada variable dentro de cada grupo.
 
-Esta descripción permite comparar la distribución del sexo, el nivel de actividad física, el tabaquismo y los antecedentes familiares entre los participantes con cáncer colorrectal y aquellos que pertenecen al grupo control. Las diferencias observadas pueden ayudar a identificar posibles asociaciones que se estudiarán posteriormente.
+Esta descripción permite comparar la distribución del sexo, el nivel de actividad física, el tabaquismo y los antecedentes familiares entre los participantes con cáncer colorrectal y el grupo control.
 
 ```{r}
 subset(datos,select=variables_cualitativas) %>%
@@ -314,19 +324,10 @@ subset(datos,select=variables_cualitativas) %>%
   add_overall()
 ```
 
-A continuación, se presenta una tabla descriptiva complementaria de las variables cualitativas según la condición de caso o control. Esta representación facilita la comparación de las frecuencias y proporciones entre ambos grupos y permite observar qué categorías presentan mayores diferencias en su distribución.
-
-```{r}
-crosstable(
-  datos,
-  c(sexo, fumador, antecedentes_familiares,actividad_fisica),
-  by = cancer_colorrectal
-)
-```
 
 #### Tablas de contingencia y distribución porcentual
 
-Se construyen tablas de contingencia entre la condición de caso/control y cada una de las variables cualitativas estudiadas. Estas tablas muestran las frecuencias observadas y las proporciones por filas y columnas, lo que permite examinar cómo se distribuyen las categorías de cada variable en función de la presencia o ausencia de cáncer colorrectal.
+Ahora vamos a construir tablas de contingencia entre la condición de caso/control y cada una de las variables cualitativas estudiadas. Estas tablas muestran las frecuencias observadas y las proporciones por filas y columnas, lo que permite examinar cómo se distribuyen las categorías de cada variable en función de la presencia o ausencia de cáncer colorrectal.
 
 La comparación de estas distribuciones permite identificar diferencias descriptivas entre casos y controles. No obstante, las diferencias observadas no implican necesariamente una asociación estadísticamente significativa, por lo que sería necesario realizar las pruebas de contraste correspondientes para evaluar dicha asociación.
 
@@ -348,7 +349,9 @@ for (v in setdiff(variables_cualitativas, "cancer_colorrectal")) {
 
 #### Gráficos de barras
 
-Eliminamos la variable de grupo de la lista de variables cualitativas para poder hacer los gráficos de barras.
+A continuación se muestras los gráficos de barras, que nos permiten comparar las frecuencias de las variables cualitativas entre los casos de cáncer colorrectal y los controles.
+
+Eliminamos la variable de cancer colorrectal de la lista de variables cualitativas para poder hacer los gráficos de barras sin ella.
 
 ```{r barras-cualitativas, fig.width=9, fig.height=7}
 vars_comparar <- setdiff(variables_cualitativas, "cancer_colorrectal")
@@ -367,14 +370,33 @@ for (v in vars_comparar) {
     main = paste(v),
     xlab = v,
     ylab = "Frecuencia",
-    legend.text = rownames(tabla_grafico),
-    args.legend = list(title = "Grupo", x = "topright"),
     col = c("grey70", "grey30")
+  )
+  # Colocar la leyenda debajo del gráfico
+  legend(
+    "bottom",
+    inset = c(0, -0.45),
+    legend = rownames(tabla_grafico),
+    fill = c("grey70", "grey30"),
+    horiz = TRUE,
+    xpd = NA,
+    bty = "n",
+    cex = 0.8
   )
 }
 
 par(op)
 ```
+
+En relación con el sexo, la distribución es relativamente similar en ambos grupos. Entre los controles hay 60 hombres y 60 mujeres, mientras que entre los casos hay 53 hombres y 67 mujeres.
+
+Respecto al nivel de actividad física, se observa que la actividad física baja es más frecuente entre los casos (45 participantes) que entre los controles (29 participantes). Por el contrario, la actividad física alta es más frecuente entre los controles (91 participantes) que entre los casos (75 participantes).
+
+En cuanto al tabaquismo, el número de fumadores es superior entre los casos (46) que entre los controles (28).
+
+Por último, los antecedentes familiares de cáncer colorrectal también son más frecuentes entre los casos (41 participantes) que entre los controles (25 participantes).
+
+En conjunto, los gráficos muestran diferencias descriptivas entre casos y controles en el nivel de actividad física, el tabaquismo y los antecedentes familiares, mientras que la distribución por sexo es más similar entre los dos grupos.
 
 ### Respuesta al ejercicio 1
 
@@ -398,7 +420,7 @@ En esta muestra, los casos presentaron mayor edad media e IMC medio, y mayores p
 
 **Estudie qué variables podrían actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal. Justifique su respuesta a partir de los datos.**
 
-Basádonos en los resultados del análisis descriptivo anterior, podríamos decir que la edad, el sexo, el IMC, el hábito tabáquico y los antecedentes familiares podrían actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal.
+Como punto de partida, se estudiará si la edad, el sexo, el IMC, el hábito tabáquico y los antecedentes familiares podrían actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal. Para ello, se evaluará la asociación de estas variables tanto con la condición de caso/control como con el nivel de actividad física, mediante comparaciones estadísticas. Los resultados permitirán identificar qué variables merecen una consideración especial en el análisis posterior, aunque estas comparaciones por sí solas no permiten confirmar ni descartar definitivamente la existencia de confusión.
 
 ### Tablas estadísticas en base al cancer colorrectal
 
@@ -615,11 +637,11 @@ En el análisis descriptivo, los casos de cáncer colorrectal presentan una edad
 
 El IMC también presenta diferencias estadísticamente significativas entre casos y controles, pero no se ha encontrado evidencia estadísticamente significativa de una asociación con el nivel de actividad física. El tabaquismo y los antecedentes familiares muestran diferencias entre casos y controles, pero tampoco se han observado asociaciones estadísticamente significativas con la actividad física. En cuanto al sexo, no se han encontrado diferencias estadísticamente significativas en las comparaciones realizadas.
 
-Estos resultados permiten identificar posibles variables de confusión, pero no confirmar ni descartar definitivamente su existencia. La selección de las variables de ajuste debe considerar tanto los resultados observados como el conocimiento epidemiológico y las relaciones causales plausibles entre las variables.
+Estos resultados permiten identificar posibles variables de confusión, pero no confirmar ni descartar definitivamente su existencia.
 
-Para profundizar en la evaluación de la confusión, se puede comparar la odds ratio cruda de la asociación entre actividad física baja y cáncer colorrectal con las estimaciones ajustadas mediante regresión logística. La interpretación de este análisis debe considerar qué variables es apropiado controlar según el objetivo epidemiológico.
+Por tanto, a partir de los resultados obtenidos, se considera que la edad es la variable que cuenta con mayor respaldo estadístico para ser evaluada como posible factor de confusión en el análisis posterior.
 
-No obstante, para confirmar si estas variables actúan realmente como factores de confusión, sería necesario aplicar un método de análisis adicional, que se abordará en el siguiente apartado»
+No obstante, la ausencia de significación estadística en las comparaciones de las demás variables no permite descartar definitivamente su posible papel como confusoras. Para confirmar si estas variables actúan realmente como factores de confusión, sería necesario aplicar un método de análisis adicional, que se abordará en el siguiente apartado.
 
 # Análisis de regresión
 
@@ -669,7 +691,7 @@ Al tratarse de un estudio de casos y controles, estos resultados describen una a
 
 **Ajuste el modelo por el/los potencial/es factor/es de confusión identificado/s y vuelva a estimar el efecto de la actividad física.**
 
-Para ello vamos a ajustar la regresión logística por los posibles factores de confusión que hemos identificado en el ejercicio 1: edad, IMC, el hábito tabáquico y los antecedentes familiares. Solo la edad tenía mayor relación estadística pero vamos a evaluar todas salvo el sexo (que estaba igualmente distribuida en ambos grupos) para confirmar.
+Para ello vamos a ajustar la regresión logística por el principal factor de confusión identificado en el ejercicio descriptivo, que es la edad. Como pruebas adicionales se realizarán también ajustes en base al IMC, el hábito tabáquico y los antecedentes familiares. Solo la edad tenía mayor relación estadística pero vamos a evaluar todas salvo el sexo (que estaba igualmente distribuida en ambos grupos) para confirmar.
 
 ```{r}
 
@@ -731,6 +753,15 @@ Para ello vamos a ajustar un modelo de regresión logística multivariable que i
 
 ```{r}
 # Modelo de regresión logística con todas las variables
+
+# Establecemos "Mujer" como primer nivel del factor.
+# En la regresión logística, el primer nivel será la categoría de referencia por defecto.
+# Por tanto, el efecto estimado para "Hombre" se comparará con el de "Mujer".
+datos$sexo <- factor(
+  datos$sexo,
+  levels = c("Mujer", "Hombre")
+)
+
 modelo_completo <- glm(
   cancer_colorrectal ~ actividad_fisica + edad + sexo +
     imc + fumador + antecedentes_familiares,
@@ -743,7 +774,13 @@ summary(modelo_completo)
 
 # Odds ratios e intervalos de confianza del 95 %
 exp(cbind(
-  coef(modelo_completo),
+  OR = coef(modelo_completo),
   confint(modelo_completo)
 ))
 ```
+Al ajustar el modelo de regresión logística por edad, sexo, IMC, tabaquismo y antecedentes familiares, la OR para la actividad física baja fue de **1,78 (IC del 95 %: 0,97–3,29; p = 0,065)**.
+
+La estimación sigue indicando unas odds de presentar cáncer colorrectal mayores entre las personas con actividad física baja que entre aquellas con actividad física alta. Sin embargo, tras el ajuste, la asociación no alcanza significación estadística al nivel del 5 %, ya que el intervalo de confianza incluye el valor 1 y el valor p es superior a 0,05.
+
+Al comparar este resultado con la OR cruda de 1,88 (IC del 95 %: 1,08–3,31; p = 0,026), se observa que la asociación estimada cambia y se pierde la significación estadística tras el ajuste. Por tanto, **la conclusión no cambia en cuanto a la dirección de la asociación, pero sí respecto a su significación estadística**. Los resultados permiten afirmar que una vez consideradas conjuntamente las variables incluidas en el modelo, no se obtiene evidencia estadística suficiente para descartar la ausencia de asociación al nivel del 5 %.
+
