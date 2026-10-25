@@ -145,7 +145,7 @@ En esta muestra hay `r sum(datos$cancer_colorrectal == "Control", na.rm = TRUE)`
 
 # Análisis descriptivo
 
-## Ejercicio 1:
+## Ejercicio 1
 
 **Realice un análisis descriptivo de la muestra según la condición de caso/control. Describa adecuadamente las variables cuantitativas y cualitativas e interprete los resultados.**
 
@@ -267,7 +267,7 @@ En conjunto, los diagramas de caja respaldan lo observado en los histogramas: lo
 Se elaboran gráficos Q-Q de la edad y del IMC por separado para casos y controles con el fin de evaluar visualmente la aproximación de las distribuciones a la normalidad.
 
 ```{r qqplots, fig.width=7, fig.height=9, out.width="85%", fig.align="center"}
-par(mfrow = c(2, 2))
+op <- par(mfrow = c(2, 2))
 
 # Comprobar visualmente la normalidad en cada grupo.
 
@@ -416,9 +416,9 @@ Asimismo, los antecedentes familiares están presentes en el 20,8% de los contro
 
 En esta muestra, los casos presentan mayor edad media e IMC medio, y mayores proporciones de actividad física baja, tabaquismo y antecedentes familiares que los controles. Estas diferencias son descriptivas: por sí solas no permiten afirmar que las asociaciones sean estadísticamente significativas ni establecer causalidad. La evaluación de asociaciones y posibles factores de confusión requiere los análisis inferenciales posteriores.
 
-## Ejercicio 2:
+## Ejercicio 2
 
-**Estudie qué variables pueden actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal. Justifique su respuesta a partir de los datos.**
+**Estudie qué variables podrían actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal. Justifique su respuesta a partir de los datos.**
 
 Como punto de partida, se estudia si la edad, el sexo, el IMC, el hábito tabáquico y los antecedentes familiares pueden actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal. Para ello, se evalúa la asociación de estas variables tanto con la condición de caso/control como con el nivel de actividad física, mediante comparaciones estadísticas. Los resultados permiten identificar qué variables merecen una consideración especial en el análisis, aunque estas comparaciones por sí solas no confirman ni descartan definitivamente la existencia de confusión.
 
@@ -468,7 +468,7 @@ subset(datos,select=variables_cuantitativas_grupo) %>%
   )
 ```
 
-Al aplicar ambas pruebas, se observan diferencias estadísticamente significativas (p < 0,05) en las dos variables entre los grupos de casos y controles de cáncer colorrectal. Por tanto, son posibles factores de confusión.
+Al aplicar ambas pruebas, se observan diferencias estadísticamente significativas (p < 0,05) en la edad y el IMC entre los grupos de casos y controles de cáncer colorrectal. Estos resultados justifican explorar el papel de ambas variables como posibles factores de confusión.
 
 #### Variables cualitativas
 
@@ -494,7 +494,7 @@ subset(datos,select=variables_cualitativas) %>%
 
 El sexo no presenta diferencias estadísticamente significativas entre los grupos, mientras que la actividad física, el tabaquismo y los antecedentes familiares presentan valores p inferiores a 0,05.
 
-Las variables asociadas con el cáncer son candidatas a ser examinadas como factores de confusión.
+La actividad física es la exposición de interés del estudio. El tabaquismo y los antecedentes familiares presentan diferencias estadísticamente significativas entre los casos y los controles, mientras que el sexo no muestra diferencias significativas. Estas asociaciones justifican explorar el posible papel de las variables como factores de confusión, pero no bastan por sí solas para establecerlo.
 
 ### Edad e IMC: comparación por actividad física
 
@@ -637,11 +637,11 @@ En el análisis descriptivo, los casos de cáncer colorrectal presentan una edad
 
 El IMC también presenta diferencias estadísticamente significativas entre casos y controles, pero no se encuentra evidencia estadísticamente significativa de una asociación con el nivel de actividad física. El tabaquismo y los antecedentes familiares muestran diferencias entre casos y controles, pero tampoco se observan asociaciones estadísticamente significativas con la actividad física. En cuanto al sexo, no se encuentran diferencias estadísticamente significativas en las comparaciones realizadas.
 
-Estos resultados permiten identificar posibles variables de confusión, pero no confirmar ni descartar definitivamente su existencia.
+En conjunto, la edad es la principal candidata a factor de confusión porque presenta diferencias estadísticamente significativas tanto entre los casos y los controles como entre las personas con actividad física alta y baja.
 
-Por tanto, a partir de los resultados obtenidos, se considera que la edad es la variable que cuenta con mayor respaldo estadístico para ser evaluada como posible factor de confusión en el análisis posterior.
+El IMC, el tabaquismo y los antecedentes familiares también presentan diferencias entre casos y controles, pero no se observa evidencia estadísticamente significativa de asociación con el nivel de actividad física. En cuanto al sexo, no se observan diferencias estadísticamente significativas en ninguna de las comparaciones realizadas.
 
-No obstante, la ausencia de significación estadística en las comparaciones de las demás variables no permite descartar definitivamente su posible papel como confusoras. Para confirmar si estas variables actúan realmente como factores de confusión, se requiere un método de análisis adicional, que se aborda en el siguiente apartado.
+Estos resultados permiten priorizar la edad para el análisis posterior, aunque las comparaciones bivariantes no permiten confirmar ni descartar por sí solas la existencia de confusión.
 
 # Análisis de regresión
 
@@ -691,7 +691,7 @@ Al tratarse de un estudio de casos y controles, estos resultados describen una a
 
 **Ajuste el modelo por el/los potencial/es factor/es de confusión identificado/s y vuelva a estimar el efecto de la actividad física.**
 
-Para ello, se ajusta la regresión logística por el principal factor de confusión identificado en el ejercicio descriptivo: la edad. Como análisis adicionales, también se ajusta por el IMC, el hábito tabáquico y los antecedentes familiares. Aunque la edad muestra la asociación más clara, se evalúan todas estas variables, salvo el sexo, que presenta una distribución similar en ambos grupos.
+Para el análisis principal, se ajusta el modelo de regresión logística por edad, que es la principal candidata a factor de confusión según los resultados del análisis descriptivo. Como análisis complementarios, se ajustan modelos separados por IMC, tabaquismo y antecedentes familiares para evaluar cuánto cambia la OR al incluir cada variable. El sexo no se incluye en estos modelos individuales porque no se observaron diferencias estadísticamente significativas en las comparaciones exploratorias. No obstante, sí se incluye en el modelo completo del ejercicio 4, tal como solicita el enunciado. La ausencia de significación estadística en las comparaciones bivariantes no descarta por sí sola un posible papel como confusor.
 
 ```{r}
 
@@ -733,7 +733,7 @@ Ajustando un modelo de regresión logística por separado para cada uno de los p
 
 *Al ajustar por IMC*, la OR aumenta hasta 2,08 y la asociación sigue siendo estadísticamente significativa (p = 0,012). Por tanto, el ajuste por IMC no atenúa la asociación observada; en este modelo, la estimación aumenta.
 
-*Al ajustar por tabaquismo*, la OR es de 1,83 y la asociación continúa siendo estadísticamente significativa (p = 0,036). La estimación cambia poco respecto a la OR cruda, por lo que el tabaquismo parece modificar poco la asociación en este análisis.
+*Al ajustar por tabaquismo*, la OR es de 1,83 y la asociación continúa siendo estadísticamente significativa (p = 0,036). La estimación cambia poco respecto a la OR cruda, por lo que el ajuste por tabaquismo modifica poco la estimación de la asociación en este análisis.
 
 *Al ajustar por antecedentes familiares*, la OR es de 1,89 y también se mantiene la significación estadística (p = 0,027). La estimación es prácticamente igual a la cruda, lo que sugiere que el ajuste por esta variable apenas modifica la asociación observada.
 
@@ -778,8 +778,9 @@ exp(cbind(
   confint(modelo_completo)
 ))
 ```
-Al ajustar el modelo de regresión logística por edad, sexo, IMC, tabaquismo y antecedentes familiares, la OR para la actividad física baja es de **1,78 (IC del 95%: 0,97–3,29; p = 0,065)**.
 
-La estimación sigue indicando unas odds de presentar cáncer colorrectal mayores entre las personas con actividad física baja que entre aquellas con actividad física alta. Sin embargo, tras el ajuste, la asociación no alcanza significación estadística al nivel del 5%, ya que el intervalo de confianza incluye el valor 1 y el valor p es superior a 0,05.
+Al comparar el modelo completo con el modelo crudo, la OR disminuye ligeramente, de 1,88 a 1,78, aunque la dirección de la asociación se mantiene. 
 
-Al comparar este resultado con la OR cruda de 1,88 (IC del 95%: 1,08–3,31; p = 0,026), se observa que la asociación estimada cambia y pierde significación estadística tras el ajuste. Por tanto, **la conclusión no cambia en cuanto a la dirección de la asociación, pero sí respecto a su significación estadística**. Una vez consideradas conjuntamente las variables incluidas en el modelo, no se obtiene evidencia estadística suficiente para descartar la ausencia de asociación al nivel del 5%.
+Sin embargo, tras el ajuste, la asociación no alcanza significación estadística al nivel del 5% (IC del 95%: 0,97–3,29; p = 0,065).
+
+Por tanto, la conclusión se mantiene en cuanto a la dirección de la asociación, pero no en cuanto a su significación estadística. Estos resultados no permiten afirmar que no exista asociación, sino que no hay evidencia estadística suficiente para establecerla al nivel de significación considerado.
