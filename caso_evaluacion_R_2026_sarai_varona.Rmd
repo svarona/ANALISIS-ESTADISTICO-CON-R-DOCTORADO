@@ -65,13 +65,13 @@ Y este es el resumen inicial de las variables:
 summary(datos)
 ```
 
-## Comprobación de frecuancias y datos perdidos
+## Comprobación de frecuencias y datos perdidos
 
 Comprobamos la frecuencia de las variables cualitativas:
 
 ```{r}
 variables_cualitativas <- names(datos)[sapply(datos, is.character)]
-variables_cuantitativas <- setdiff(names(datos)[sapply(datos, is.numeric)], "id") #quitamos id porque no tiene relevancia clinica
+variables_cuantitativas <- setdiff(names(datos)[sapply(datos, is.numeric)], "id") # Quitamos id porque no tiene relevancia clínica.
 
 for (v in variables_cualitativas) {
   cat("\nFrecuencias de", v, ":")
@@ -82,7 +82,7 @@ for (v in variables_cualitativas) {
 Y ahora vamos a comprobar los datos perdidos si los hubiera:
 
 ```{r}
-# Numero y porcentaje de datos perdidos por variable.
+# Número y porcentaje de datos perdidos por variable.
 n_perdidos <- sapply(datos, function(x) sum(is.na(x)))
 tabla_perdidos <- data.frame(
   variable = names(datos),
@@ -101,10 +101,10 @@ if (all(tabla_perdidos$n_perdidos == 0)) {
 
 ## Variables de referencia
 
-Vamos a asignar cuales serán las variables de referencia para las categrías en las que tenga sentido establecer una variable de referencia:
+Vamos a establecer las categorías de referencia cuando tenga sentido hacerlo:
 
 ```{r}
-# Controles para cancer colorrectal
+# Controles para el cáncer colorrectal
 datos$cancer_colorrectal <- factor(
   datos$cancer_colorrectal,
   levels = c("Control", "Caso")
@@ -116,7 +116,7 @@ datos$actividad_fisica <- factor(
   levels = c("Alta", "Baja")
 )
 
-# Habito tabáquico nulo
+# Hábito tabáquico: no fumador
 datos$fumador <- factor(
   datos$fumador,
   levels = c("No", "Si")
@@ -137,7 +137,7 @@ if (!all(c("Control", "Caso") %in% unique(na.omit(datos$cancer_colorrectal))) ) 
   stop("cancer_colorrectal debe contener las categorías 'Control' y 'Caso'.")
 }
 
-cat("\nNumero de participantes por grupo:")
+cat("\nNúmero de participantes por grupo:")
 print(table(datos$cancer_colorrectal, exclude = NULL))
 ```
 
@@ -240,14 +240,14 @@ op <- par(mfrow = c(1, length(variables_cuantitativas)),
 for (v in variables_cuantitativas) {
   b <- boxplot(
     datos[[v]] ~ datos$cancer_colorrectal,
-    main = paste(v, "segun condicion de caso/control"),
+    main = paste(v, "según la condición de caso/control"),
     xlab = "Grupo",
     ylab = v,
     col = c("firebrick3", "chartreuse4"),
     border = c("darkred", "darkgreen")
   )
 
-  # Etiquetar cada outlier con su valor, justo debajo del punto
+  # Etiquetar cada valor atípico (outlier) con su valor, justo debajo del punto.
   if (length(b$out) > 0) {
     text(x = b$group, y = b$out, labels = b$out, pos = 1, cex = 0.8)
   }
@@ -260,7 +260,7 @@ En relación con la edad, la mediana es superior en los casos. La caja de los ca
 
 En cuanto al IMC, los casos presentan una mediana superior a la de los controles, aproximadamente 27,3 frente a 25,9 kg/m². Además, la caja de los casos es más amplia, lo que indica una mayor dispersión del 50 % central de sus valores. Destaca también un valor atípico elevado, próximo a 40,7 kg/m², en el grupo de casos.
 
-En conjunto, los diagramas de caja respaldan lo observado en los histogramas: los casos presentan valores centrales superiores tanto de edad como de IMC. Además, el IMC muestra una mayor dispersión en los casos y presenta un posible valor atípico (outlier) que conviene tener en cuenta al interpretar los resultados. Estas diferencias visuales no determinan por sí solas la significación estadística de las comparaciones y habría que evaluar si las medias son significativamente diferentes por medio de un test estadístico.
+En conjunto, los diagramas de caja respaldan lo observado en los histogramas: los casos presentan valores centrales superiores tanto de edad como de IMC. Además, el IMC muestra una mayor dispersión en los casos y presenta un posible outlier que conviene tener en cuenta al interpretar los resultados. Estas diferencias visuales no determinan por sí solas la significación estadística de las comparaciones. Habría que aplicar una prueba estadística para evaluar si las medias difieren significativamente.
 
 #### Gráficos Q-Q
 
@@ -269,14 +269,14 @@ Vamos a elaborar gráficos Q-Q de la edad y del IMC por separado para casos y co
 ```{r qqplots, fig.width=7, fig.height=9, out.width="85%", fig.align="center"}
 par(mfrow = c(2, 2))
 
-# Comprobar la normalidad visualmente en cada grupo
+# Comprobar visualmente la normalidad en cada grupo.
 
 for (v in variables_cuantitativas) {
   for (grupo in levels(datos$cancer_colorrectal)) {
-    # Seleccionar los valores de la variable en cada grupo
+    # Seleccionar los valores de la variable en cada grupo.
     x <- datos[[v]][datos$cancer_colorrectal == grupo]
     x <- x[!is.na(x)]
-    # Gráfico Q-Q
+    # Gráfico Q-Q.
     qqnorm(
       x,
       main = paste(v, "-", grupo),
@@ -284,7 +284,7 @@ for (v in variables_cuantitativas) {
       ylab = "Cuantiles muestrales",
       pch = 19
     )
-    # Añadir la línea de referencia
+    # Añadir la línea de referencia.
     qqline(x, col = "red", lwd = 2)
   }
 }
@@ -300,9 +300,9 @@ En conjunto, los gráficos sugieren que la normalidad se aproxima mejor para el 
 
 ### Descripción de variables cualitativas
 
-#### Tablas descriptiva
+#### Tabla descriptiva
 
-A continuación se presentan las frecuencias absolutas y los porcentajes de las variables cualitativas, diferenciando entre el grupo de casos y el de controles de cancer colorrectal. Los porcentajes se calculan por columnas, de modo que permiten conocer la distribución de cada variable dentro de cada grupo.
+A continuación se presentan las frecuencias absolutas y los porcentajes de las variables cualitativas, diferenciando entre los grupos de casos y controles de cáncer colorrectal. Los porcentajes se calculan por columnas, de modo que permiten conocer la distribución de cada variable dentro de cada grupo.
 
 Esta descripción permite comparar la distribución del sexo, el nivel de actividad física, el tabaquismo y los antecedentes familiares entre los participantes con cáncer colorrectal y el grupo control.
 
@@ -327,7 +327,7 @@ subset(datos,select=variables_cualitativas) %>%
 
 #### Tablas de contingencia y distribución porcentual
 
-Ahora vamos a construir tablas de contingencia entre la condición de caso/control y cada una de las variables cualitativas estudiadas. Estas tablas muestran las frecuencias observadas y las proporciones por filas y columnas, lo que permite examinar cómo se distribuyen las categorías de cada variable en función de la presencia o ausencia de cáncer colorrectal.
+Ahora vamos a construir tablas de contingencia entre la condición de caso/control y cada una de las variables cualitativas estudiadas. Estas tablas muestran las frecuencias observadas y las proporciones por filas y columnas, lo que permite examinar cómo se distribuyen las categorías de cada variable según la presencia o ausencia de cáncer colorrectal.
 
 La comparación de estas distribuciones permite identificar diferencias descriptivas entre casos y controles. No obstante, las diferencias observadas no implican necesariamente una asociación estadísticamente significativa, por lo que sería necesario realizar las pruebas de contraste correspondientes para evaluar dicha asociación.
 
@@ -345,13 +345,13 @@ for (v in setdiff(variables_cualitativas, "cancer_colorrectal")) {
 }
 ```
 
-### Gráficos descriptivos de variables cuantitativas
+### Gráficos descriptivos de variables cualitativas
 
 #### Gráficos de barras
 
-A continuación se muestras los gráficos de barras, que nos permiten comparar las frecuencias de las variables cualitativas entre los casos de cáncer colorrectal y los controles.
+A continuación se muestran los gráficos de barras, que permiten comparar las frecuencias de las variables cualitativas entre los casos de cáncer colorrectal y los controles.
 
-Eliminamos la variable de cancer colorrectal de la lista de variables cualitativas para poder hacer los gráficos de barras sin ella.
+Excluimos la variable de cáncer colorrectal de la lista de variables cualitativas para poder crear los gráficos de barras sin ella.
 
 ```{r barras-cualitativas, fig.width=9, fig.height=7}
 vars_comparar <- setdiff(variables_cualitativas, "cancer_colorrectal")
@@ -406,7 +406,7 @@ La edad media fue de 55,34 años (DE = 11,38) en los controles y de 61,41 años 
 
 El IMC medio fue de 25,81 (DE = 3,52) en los controles y de 27,44 (DE = 4,47) en los casos. Las medianas fueron 25,85 y 27,25, respectivamente. Los casos presentaron valores medios de IMC algo superiores y mayor variabilidad en esta variable.
 
-Las mujeres representaron el 50,0% de los controles y el 55,8% de los casos, por lo que la distribución por sexo fue relativamente similar entre grupos.
+Las mujeres representaron el 50% de los controles y el 55,8% de los casos, por lo que la distribución por sexo fue relativamente similar entre grupos.
 
 La actividad física baja fue más frecuente entre los casos (37,5%) que entre los controles (24,2%). En cambio, la actividad física alta fue más frecuente entre los controles (75,8%) que entre los casos (62,5%).
 
@@ -422,15 +422,15 @@ En esta muestra, los casos presentaron mayor edad media e IMC medio, y mayores p
 
 Como punto de partida, se estudiará si la edad, el sexo, el IMC, el hábito tabáquico y los antecedentes familiares podrían actuar como factores de confusión en la relación entre actividad física y cáncer colorrectal. Para ello, se evaluará la asociación de estas variables tanto con la condición de caso/control como con el nivel de actividad física, mediante comparaciones estadísticas. Los resultados permitirán identificar qué variables merecen una consideración especial en el análisis posterior, aunque estas comparaciones por sí solas no permiten confirmar ni descartar definitivamente la existencia de confusión.
 
-### Tablas estadísticas en base al cancer colorrectal
+### Tablas estadísticas según el cáncer colorrectal
 
-Vamos a evaluar estadísticamente si estas variables podrían tener diferencias significativas en función del grupo de cancer colorrectal y si podrían ser realmente factores de confusión. Evaluaremos por separado las variables cuantitativas y las cualitativas.
+Vamos a evaluar si estas variables presentan diferencias estadísticamente significativas según el grupo de cáncer colorrectal y si podrían ser factores de confusión. Evaluaremos por separado las variables cuantitativas y las cualitativas.
 
 #### Variables cuantitativas
 
-Vamos a construir una tabla con `tbl_summary()` para describir las variables cuantitativas según la condición de caso/control de cancer colorrectal y añadir dos pruebas para comparar los grupos, uno en base a las medias y otro utilizando rangos
+Construiremos una tabla con `tbl_summary()` para describir las variables cuantitativas según la condición de caso/control de cáncer colorrectal y añadiremos dos pruebas para comparar los grupos: una basada en las medias y otra en los rangos.
 
-Primero empleamos la prueba t de Welch para comparar las medias y que no requiere asumir varianzas iguales.
+Primero empleamos la prueba t de Welch para comparar las medias, que no requiere asumir varianzas iguales.
 
 ```{r}
 subset(datos,select=variables_cuantitativas_grupo) %>%
@@ -447,7 +447,7 @@ subset(datos,select=variables_cuantitativas_grupo) %>%
   add_p(test = everything() ~ "t.test")
 ```
 
-Y ahora empleamos la prueba de Wilcoxon-Mann-Whitney (wilcox.test) para observar entre las distribuciones utilizando rangos
+A continuación, empleamos la prueba de Wilcoxon-Mann-Whitney (`wilcox.test`) para comparar las distribuciones mediante rangos.
 
 ```{r}
 subset(datos,select=variables_cuantitativas_grupo) %>%
@@ -468,11 +468,11 @@ subset(datos,select=variables_cuantitativas_grupo) %>%
   )
 ```
 
-Vemos que empleando ambos test, ambas variables tienen diferencias significativas (<0.05) entre los grupos de caso/control de cancer colorrectal por lo que son potenciales factores de confusión.
+Al aplicar ambas pruebas, observamos diferencias estadísticamente significativas (p < 0,05) en las dos variables entre los grupos de casos y controles de cáncer colorrectal. Por tanto, son posibles factores de confusión.
 
 #### Variables cualitativas
 
-Vamos a construir una tabla con `tbl_summary()` para describir las variables cualitativas según la condición de caso/control de cancer colorrectal y añadir una pruebas para comparar los grupos empleando la prueba Chi-cuadrado de Pearson:
+Construiremos una tabla con `tbl_summary()` para describir las variables cualitativas según la condición de caso/control de cáncer colorrectal y añadiremos una prueba para comparar los grupos mediante la prueba de chi-cuadrado de Pearson:
 
 ```{r}
 subset(datos,select=variables_cualitativas) %>%
@@ -492,29 +492,29 @@ subset(datos,select=variables_cualitativas) %>%
   add_p()
 ```
 
-Vemos que el sexo no parece que tenga diferencias significativas entre los grupos, mientras que la actividad física, el tabaquismo y los antecedentes familiares tienen una significancia de menos del 0.05.
+El sexo no presenta diferencias estadísticamente significativas entre los grupos, mientras que la actividad física, el tabaquismo y los antecedentes familiares presentan valores p inferiores a 0,05.
 
 Las variables asociadas con el cáncer son candidatas a ser examinadas como factores de confusión.
 
 ### Edad e IMC: comparación por actividad física
 
-Vamos a emplear tapply() para comparar una variable cuantitativa entre grupos:
+Vamos a emplear `tapply()` para comparar una variable cuantitativa entre grupos:
 
-Media de edad según la actividad físicas:
+Media de edad según la actividad física:
 
 ```{r}
 tapply(datos$edad, datos$actividad_fisica, mean, na.rm = TRUE)
 ```
 
-Media de IMC según actividad física
+Media de IMC según la actividad física:
 
 ```{r}
 tapply(datos$imc, datos$actividad_fisica, mean, na.rm = TRUE)
 ```
 
-Vamos a realizar tablas estadísticas de las variables cuantitativas según la actividad física. Emplearemos dos test igual que antes.
+Vamos a elaborar tablas estadísticas de las variables cuantitativas según la actividad física. Emplearemos dos pruebas, como antes.
 
-Primero el t-test:
+Primero, la prueba t:
 
 ```{r}
 variables_cuantitativas_af <- c(
@@ -562,7 +562,7 @@ subset(datos,select=variables_cuantitativas_af) %>%
 
 Vemos que en este caso la edad está estadísticamente relacionada con la actividad física, mientras que el IMC no.
 
-### Sexo, tabaquismo y antecedentes familiares comparación por actividad física
+### Sexo, tabaquismo y antecedentes familiares: comparación por actividad física
 
 Vamos a visualizar las tablas cruzadas de las variables categóricas en función de la actividad física:
 
@@ -574,7 +574,7 @@ tabla_sexo <- table(datos$sexo, datos$actividad_fisica)
 tabla_sexo
 ```
 
-Tabla de porcentages para el sexo
+Tabla de porcentajes para el sexo
 
 ```{r}
 round(prop.table(tabla_sexo, margin = 2) * 100, 2)
@@ -587,7 +587,7 @@ tabla_fumador <- table(datos$fumador, datos$actividad_fisica)
 tabla_fumador
 ```
 
-Tabla de porcentages para el tabaquismo
+Tabla de porcentajes para el tabaquismo
 
 ```{r}
 round(prop.table(tabla_fumador, margin = 2) * 100, 2)
@@ -604,13 +604,13 @@ tabla_antecedentes <- table(
 tabla_antecedentes
 ```
 
-Tabla de porcentages para los antecedentes familiares
+Tabla de porcentajes para los antecedentes familiares
 
 ```{r}
 round(prop.table(tabla_antecedentes, margin = 2) * 100, 2)
 ```
 
-Vamos a construir una tabla con `tbl_summary()` para describir las variables cualitativas según la actividad física y añadir una prueba para comparar los grupos empleando la prueba Chi-cuadrado de Pearson:
+Vamos a construir una tabla con `tbl_summary()` para describir las variables cualitativas según la actividad física y añadir una prueba para comparar los grupos mediante la prueba de chi-cuadrado de Pearson:
 
 ```{r}
 subset(datos, select = variables_cualitativas[variables_cualitativas != "cancer_colorrectal"]) %>%
@@ -629,7 +629,7 @@ subset(datos, select = variables_cualitativas[variables_cualitativas != "cancer_
   add_p()
 ```
 
-Vemos que ninguna de estas variables tiene relación significativa con la actividad física.
+No se observa una asociación estadísticamente significativa entre estas variables y la actividad física.
 
 ### Conclusiones
 
@@ -645,18 +645,18 @@ No obstante, la ausencia de significación estadística en las comparaciones de 
 
 # Análisis de regresión
 
-## Ejercicio 1:
+## Ejercicio 1
 
-**Estime mediante regresión logística el efecto crudo de un nivel bajo de actividad física sobre el cáncer colorrectal. Exprese el resultado mediante odds ratio (OR), intervalo de confianza del 95% y valor p.**
+**Estime mediante regresión logística el efecto crudo de un nivel bajo de actividad física sobre el cáncer colorrectal. Exprese el resultado mediante la odds ratio (OR), su intervalo de confianza del 95 % y el valor p.**
 
-### Regresión logistica
+### Regresión logística
 
 Tenemos las siguientes variables:
 
-- **Variable respuesta**: cáncer colorrectal (caso_control), codificada como caso frente a control.
-- **Variable explicativa**: nivel de actividad física (actividad_fisica), comparando actividad baja frente a actividad alta.
+- **Variable de respuesta**: cáncer colorrectal (`cancer_colorrectal`), codificada como caso frente a control.
+- **Variable explicativa**: nivel de actividad física (`actividad_fisica`), comparando la actividad baja frente a la actividad alta.
 
-Empezamos por realizar la regresión logistica cruda sin ajustar por otras variables:
+Empezamos por realizar la regresión logística cruda, sin ajustar por otras variables:
 
 ```{r}
 # Regresión logística cruda (sin ajustar por otras variables)
@@ -667,7 +667,7 @@ modelo_crudo <- glm(
 )
 summary(modelo_crudo)
 ```
-Ahora vamos a ver los Odds ratios:
+A continuación, calculamos las odds ratios:
 
 ```{r}
 # Odds ratio e intervalos de confianza del 95 %
@@ -683,15 +683,15 @@ Se realizó una regresión logística para estimar la asociación entre un nivel
 
 Los resultados muestran que las personas con un nivel bajo de actividad física presentan una OR cruda de 1,88 (IC del 95 %: 1,08–3,31; p = 0,026).
 
-Los resultados indican que las personas con un nivel bajo de actividad física tienen casi el doble de posibilidades, en términos estadísticos, de presentar cáncer colorrectal que las personas con un nivel alto de actividad física. Esta asociación es estadísticamente significativa (OR = 1,88; IC del 95 %: 1,08–3,31; p = 0,026). Dado que el intervalo de confianza del 95 % no incluye el valor 1 y que el valor p es inferior a 0,05, se observa una asociación estadísticamente significativa entre la actividad física baja y el cáncer colorrectal.
+Los resultados indican que las odds de presentar cáncer colorrectal entre las personas con un nivel bajo de actividad física son casi el doble que entre las personas con un nivel alto de actividad física. Esta asociación es estadísticamente significativa (OR = 1,88; IC del 95 %: 1,08–3,31; p = 0,026). Dado que el intervalo de confianza del 95 % no incluye el valor 1 y que el valor p es inferior a 0,05, se observa una asociación estadísticamente significativa entre la actividad física baja y el cáncer colorrectal.
 
 Al tratarse de un estudio de casos y controles, estos resultados describen una asociación en términos de odds y no permiten afirmar por sí solos que la baja actividad física sea la causa del cáncer colorrectal.
 
-## Ejercicio 2:
+## Ejercicio 2
 
 **Ajuste el modelo por el/los potencial/es factor/es de confusión identificado/s y vuelva a estimar el efecto de la actividad física.**
 
-Para ello vamos a ajustar la regresión logística por el principal factor de confusión identificado en el ejercicio descriptivo, que es la edad. Como pruebas adicionales se realizarán también ajustes en base al IMC, el hábito tabáquico y los antecedentes familiares. Solo la edad tenía mayor relación estadística pero vamos a evaluar todas salvo el sexo (que estaba igualmente distribuida en ambos grupos) para confirmar.
+Para ello, vamos a ajustar la regresión logística por el principal factor de confusión identificado en el ejercicio descriptivo: la edad. Como análisis adicionales, ajustaremos también por el IMC, el hábito tabáquico y los antecedentes familiares. Aunque la edad mostró la asociación más clara, evaluaremos todas estas variables, salvo el sexo, que presentó una distribución similar en ambos grupos.
 
 ```{r}
 
@@ -723,7 +723,7 @@ for (v in posibles_confusores) {
 }
 ```
 
-## Ejercicio 3:
+## Ejercicio 3
 
 **Compare e interprete las estimaciones cruda y ajustada. Indique si los resultados son compatibles con la presencia de confusión.**
 
@@ -745,11 +745,11 @@ En cuanto al AIC, el modelo ajustado por edad presenta el valor más bajo (319,0
 
 No obstante, estos modelos se han ajustado por cada variable por separado. Por tanto, los resultados no permiten confirmar definitivamente la existencia de confusión ni descartar que haya confusión residual. Para profundizar en el análisis, sería conveniente comparar estos resultados con un modelo multivariable que incluya conjuntamente las variables de ajuste que estén justificadas desde el punto de vista epidemiológico, que se realizará en el siguiente ejercicio.
 
-## Ejercicio 4:
+## Ejercicio 4
 
 **Como análisis adicional, ajuste un modelo que incluya todas las variables recogidas y comente brevemente si la conclusión principal cambia.**
 
-Para ello vamos a ajustar un modelo de regresión logística multivariable que incluya todas las variables recogidas en el estudio. Después comprobaremos si la asociación entre actividad física baja y cáncer colorrectal cambia respecto a los modelos anteriores.
+Para ello, vamos a ajustar un modelo de regresión logística multivariable que incluya todas las variables recogidas en el estudio. Después comprobaremos si la asociación entre la actividad física baja y el cáncer colorrectal cambia respecto a los modelos anteriores.
 
 ```{r}
 # Modelo de regresión logística con todas las variables
@@ -778,9 +778,8 @@ exp(cbind(
   confint(modelo_completo)
 ))
 ```
-Al ajustar el modelo de regresión logística por edad, sexo, IMC, tabaquismo y antecedentes familiares, la OR para la actividad física baja fue de **1,78 (IC del 95 %: 0,97–3,29; p = 0,065)**.
+Al ajustar el modelo de regresión logística por edad, sexo, IMC, tabaquismo y antecedentes familiares, la OR para la actividad física baja fue de **1,78 (IC del 95%: 0,97–3,29; p = 0,065)**.
 
-La estimación sigue indicando unas odds de presentar cáncer colorrectal mayores entre las personas con actividad física baja que entre aquellas con actividad física alta. Sin embargo, tras el ajuste, la asociación no alcanza significación estadística al nivel del 5 %, ya que el intervalo de confianza incluye el valor 1 y el valor p es superior a 0,05.
+La estimación sigue indicando unas odds de presentar cáncer colorrectal mayores entre las personas con actividad física baja que entre aquellas con actividad física alta. Sin embargo, tras el ajuste, la asociación no alcanza significación estadística al nivel del 5%, ya que el intervalo de confianza incluye el valor 1 y el valor p es superior a 0,05.
 
-Al comparar este resultado con la OR cruda de 1,88 (IC del 95 %: 1,08–3,31; p = 0,026), se observa que la asociación estimada cambia y se pierde la significación estadística tras el ajuste. Por tanto, **la conclusión no cambia en cuanto a la dirección de la asociación, pero sí respecto a su significación estadística**. Los resultados permiten afirmar que una vez consideradas conjuntamente las variables incluidas en el modelo, no se obtiene evidencia estadística suficiente para descartar la ausencia de asociación al nivel del 5 %.
-
+Al comparar este resultado con la OR cruda de 1,88 (IC del 95%: 1,08–3,31; p = 0,026), se observa que la asociación estimada cambia y pierde significación estadística tras el ajuste. Por tanto, **la conclusión no cambia en cuanto a la dirección de la asociación, pero sí respecto a su significación estadística**. Una vez consideradas conjuntamente las variables incluidas en el modelo, no se obtiene evidencia estadística suficiente para descartar la ausencia de asociación al nivel del 5%.
